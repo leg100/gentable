@@ -1,10 +1,4 @@
-package main
-
-import (
-	"fmt"
-
-	"github.com/charmbracelet/lipgloss/table"
-)
+package gentable
 
 var books = []struct {
 	title  string
@@ -52,14 +46,14 @@ var books = []struct {
 	},
 }
 
-func main() {
-	t := table.New().Headers("title", "author").
-		Width(30).
-		Height(8).
-		DisableOverflowRow()
-	for _, book := range books {
-		t.Row(book.title, book.author)
-	}
-	t.Offset(2)
-	fmt.Println(t.String())
-}
+//func main() {
+//	t := table.New().Headers("title", "author").
+//		Width(30).
+//		Height(8).
+//		DisableOverflowRow()
+//	for _, book := range books {
+//		t.Row(book.title, book.author)
+//	}
+//	t.Offset(2)
+//	fmt.Println(t.String())
+//}

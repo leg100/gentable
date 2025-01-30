@@ -5,8 +5,14 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 )
 
+func New() Model {
+	return Model{
+		lt: table.New(),
+	}
+}
+
 type Model struct {
-	lt table.Table
+	lt *table.Table
 }
 
 func (m Model) Init() tea.Cmd {

@@ -87,6 +87,7 @@ func TestModel_PageUp(t *testing.T) {
 ╰────────────────────┴────────────────╯
 `)
 	assert.Equal(t, want, m.View())
+	assert.Equal(t, 3, m.data.cursor)
 
 	m.data.PageDown()
 	want = strings.TrimSpace(`
@@ -97,6 +98,7 @@ func TestModel_PageUp(t *testing.T) {
 ╰──────────────────┴────────────────╯
 `)
 	assert.Equal(t, want, m.View())
+	assert.Equal(t, 6, m.data.cursor)
 
 	m.data.PageDown()
 	want = strings.TrimSpace(`
@@ -107,6 +109,7 @@ func TestModel_PageUp(t *testing.T) {
 ╰────────────────────┴──────────────╯
 `)
 	assert.Equal(t, want, m.View())
+	assert.Equal(t, 9, m.data.cursor)
 
 	m.data.PageDown()
 	want = strings.TrimSpace(`
@@ -117,6 +120,7 @@ func TestModel_PageUp(t *testing.T) {
 ╰────────────────────┴──────────────╯
 `)
 	assert.Equal(t, want, m.View())
+	assert.Equal(t, 9, m.data.cursor)
 
 	m.data.PageUp()
 	want = strings.TrimSpace(`
@@ -127,6 +131,7 @@ func TestModel_PageUp(t *testing.T) {
 ╰──────────────────┴────────────────╯
 `)
 	assert.Equal(t, want, m.View())
+	assert.Equal(t, 8, m.data.cursor)
 
 	m.data.PageUp()
 	want = strings.TrimSpace(`
@@ -137,6 +142,7 @@ func TestModel_PageUp(t *testing.T) {
 ╰────────────────────┴────────────────╯
 `)
 	assert.Equal(t, want, m.View())
+	assert.Equal(t, 5, m.data.cursor)
 
 	m.data.PageUp()
 	want = strings.TrimSpace(`
@@ -147,6 +153,7 @@ func TestModel_PageUp(t *testing.T) {
 ╰─────────────────────────────────┴─────────────╯
 `)
 	assert.Equal(t, want, m.View())
+	assert.Equal(t, 2, m.data.cursor)
 
 	m.data.PageUp()
 	want = strings.TrimSpace(`
@@ -157,4 +164,5 @@ func TestModel_PageUp(t *testing.T) {
 ╰─────────────────────────────────┴─────────────╯
 `)
 	assert.Equal(t, want, m.View())
+	assert.Equal(t, 2, m.data.cursor)
 }

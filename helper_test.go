@@ -1,9 +1,11 @@
 package gentable
 
-var books = []struct {
+type book struct {
 	title  string
 	author string
-}{
+}
+
+var books = []book{
 	{
 		title:  "The German Ideology",
 		author: "Marx & Engels",

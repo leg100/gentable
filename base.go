@@ -1,8 +1,6 @@
 package gentable
 
-import (
-	"slices"
-)
+import "slices"
 
 type ID any
 
@@ -58,7 +56,10 @@ func (m *base[V]) At(row, cell int) string {
 	if row >= len(m.rows) {
 		return ""
 	}
-	id := m.rows[row]
+	return m.getCell(m.rows[row], cell)
+}
+
+func (m *base[V]) getCell(id ID, cell int) string {
 	if cell >= len(m.cells[id]) {
 		return ""
 	}

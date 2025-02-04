@@ -56,7 +56,7 @@ func TestModel_withSort(t *testing.T) {
 			book.title,
 		})
 	}
-	m := New(data)
+	m := NewDefault(data)
 	want := strings.TrimSpace(`
 ╭────────────────┬─────────────────────────────────╮
 │Emile Zola      │Nana                             │
@@ -202,7 +202,7 @@ func TestModel_WithGenData(t *testing.T) {
 			}
 		},
 	)
-	m := New(data)
+	m := NewDefault(data)
 	for _, bk := range books {
 		data.Append(book{
 			title:  bk.title,
@@ -243,7 +243,7 @@ func modelWithStringData() Model {
 			book.author,
 		})
 	}
-	return New(data)
+	return NewDefault(data)
 }
 
 //func modelWithWindowStringData() Model {

@@ -4,6 +4,7 @@ import "github.com/charmbracelet/lipgloss/table"
 
 type data[V any] struct {
 	table.Data
+	filterfn func(V) bool
 }
 
 func NewData[V any](
@@ -12,5 +13,14 @@ func NewData[V any](
 ) *data[V] {
 	return &data[V]{
 		Data: newBase(getID, render),
+	}
+}
+
+func (d *data[V]) toggleFilter() {
+	switch data := d.Data.(type) {
+	case *filter[V]:
+		d.Data = data.base
+	case *base[V]:
+		d.Data = newFilter(data, d.filterfn)
 	}
 }

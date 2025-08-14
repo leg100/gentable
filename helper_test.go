@@ -8,10 +8,6 @@ type book struct {
 	author string
 }
 
-func getISBN(b book) ID {
-	return b.isbn
-}
-
 func renderBook(b book) []string {
 	return []string{b.author, b.title}
 }

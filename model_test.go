@@ -8,7 +8,7 @@ import (
 )
 
 func TestModel(t *testing.T) {
-	m := modelWithStringData()
+	m := booksModel()
 	want := strings.TrimSpace(`
 ╭─────────────────────────────────┬────────────────╮
 │The German Ideology              │Marx & Engels   │
@@ -27,36 +27,15 @@ func TestModel(t *testing.T) {
 }
 
 func TestModel_withSort(t *testing.T) {
-	data := newDB(
-		func(v []string) ID {
-			id := i
-			i++
-			return id
-		},
-		func(v []string) []string { return v },
-	)
-	data.sort = func(a, b []string) int {
-		// sort by first column of a and b, then by second column, etc
-		cols := min(len(a), len(b))
-		for i := range cols {
-			switch {
-			case a[i] < b[i]:
-				return -1
-			case a[i] > b[i]:
-				return 1
-			default:
-				continue
-			}
+	m := booksModel()
+	m.sort = func(a, b book) int {
+		// sort by author then by their book
+		cmp := strings.Compare(a.author, b.author)
+		if cmp == 0 {
+			return strings.Compare(a.title, b.title)
 		}
-		return 0
+		return cmp
 	}
-	for _, book := range books {
-		data.Append([]string{
-			book.author,
-			book.title,
-		})
-	}
-	m := NewDefault(data)
 	want := strings.TrimSpace(`
 ╭────────────────┬─────────────────────────────────╮
 │Emile Zola      │Nana                             │
@@ -88,7 +67,7 @@ func TestModel_withSort(t *testing.T) {
 //}
 
 func TestModel_Height_0(t *testing.T) {
-	m := modelWithStringData()
+	m := booksModel()
 	m.Height(0)
 	want := strings.TrimSpace(`
 ╭───────────────────┬─────────────╮
@@ -190,60 +169,19 @@ func TestModel_Height_0(t *testing.T) {
 //	assert.Equal(t, 2, m.data.(*window).cursor)
 //}
 
-func TestModel_WithGenData(t *testing.T) {
-	data := newData(
-		func(b book) ID {
-			return b.title
-		},
-		func(b book) []string {
-			return []string{
-				b.title,
-				b.author,
-			}
-		},
-	)
-	m := NewDefault(data)
+func booksModel() Model[book] {
+	m := New[book]()
 	for _, bk := range books {
-		data.Append(book{
-			title:  bk.title,
-			author: bk.author,
+		m.Append(row[book]{
+			v: bk,
+			cells: []string{
+				string(bk.isbn),
+				bk.title,
+				bk.author,
+			},
 		})
 	}
-	want := strings.TrimSpace(`
-╭─────────────────────────────────┬────────────────╮
-│The German Ideology              │Marx & Engels   │
-│Death in Venice and Other Stories│Thomas Mann     │
-│Money                            │Martin Amis     │
-│London Fields                    │Martin Amis     │
-│Nana                             │Emile Zola      │
-│To Have and Have Not             │Ernest Hemingway│
-│The Sun Also Rises               │Ernest Hemingway│
-│A Farewell to Arms               │Ernest Hemingway│
-│James Joyce                      │Ulysses         │
-│Trans-Europe Express             │Owen Hatherley  │
-╰─────────────────────────────────┴────────────────╯
-`)
-	assert.Equal(t, want, m.View())
-}
-
-var i = 0
-
-func modelWithStringData() Model {
-	data := newData(
-		func(v []string) ID {
-			id := i
-			i++
-			return id
-		},
-		func(v []string) []string { return v },
-	)
-	for _, book := range books {
-		data.Append([]string{
-			book.title,
-			book.author,
-		})
-	}
-	return NewDefault(data)
+	return m
 }
 
 //func modelWithWindowStringData() Model {

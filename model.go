@@ -7,8 +7,10 @@ import (
 )
 
 func New[V comparable]() Model[V] {
+	window := &window[V]{}
 	m := Model[V]{
-		Table: table.New().DisableOverflowRow(),
+		Table:  table.New().DisableOverflowRow().Data(window),
+		window: window,
 	}
 	return m
 }
@@ -27,13 +29,9 @@ func (m Model[V]) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.PageUp):
-			if win, ok := m.data.(*window[V]); ok {
-				win.PageUp()
-			}
+			m.window.PageUp()
 		case key.Matches(msg, keys.PageDown):
-			if win, ok := m.data.(*window[V]); ok {
-				win.PageDown()
-			}
+			m.window.PageDown()
 		}
 	}
 	return m, nil

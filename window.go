@@ -1,53 +1,137 @@
 package gentable
 
-// window is the viewport of the visible rows
-type window[V any] struct {
-	/// data is the unwindowed rows
-	data
+import (
+	"slices"
+)
 
+// window is the viewport of visible rows
+type window[V comparable] struct {
+	unwindowed data[V]
+	cursor     cursor[V]
+	// start is the unwindowed row index of the first visible row.
 	start int
-	size  int
+	// size is the number of terminal rows the window occupies (not necessarily
+	// populated with data).
+	size int
+	sort func(V, V) int
 }
 
-// At returns the contents of the cell at the given index.
+// cursor is the currently highlighted row
+type cursor[V comparable] struct {
+	n int // row position in unwindowed data
+	v V
+}
+
+// At returns the contents of the cell at the given index of windowed data.
 func (m *window[V]) At(row, cell int) string {
-	if row >= m.Rows() {
+	// TODO: this should never happen?
+	if row >= m.size {
 		return ""
 	}
-	return m.data.At(row+m.start, cell)
+	// TODO: this should never happen?
+	if m.start+row >= len(m.unwindowed.Rows()) {
+		return ""
+	}
+	v := m.unwindowed.Rows()[row+m.start]
+	cells := m.unwindowed.getCells(v)
+	if cell >= len(cells) {
+		// Not all rows have the same number of cells but the lipgloss table lib
+		// that calls this method doesn't know that.
+		return ""
+	}
+	return cells[cell]
 }
 
+// Rows returns the number of populated rows in the window
 func (m *window[V]) Rows() int {
-	return min(m.size, m.data.Rows())
+	return min(m.size, len(m.unwindowed.Rows()))
+}
+
+func (m *window[V]) Columns() int {
+	return m.unwindowed.Columns()
+}
+
+func (m *window[V]) Append(rows ...row[V]) {
+	m.unwindowed.Append(rows...)
+
+	if m.sort != nil {
+		slices.SortFunc(m.unwindowed.Rows(), m.sort)
+
+		// Check cursor index still corresponds to cursor value
+		if m.cursor.v != m.unwindowed.Rows()[m.cursor.n] {
+			// Value no longer corresponds, so search for value, and re-set cursor
+			// index
+			for i := range m.unwindowed.Rows() {
+				if m.cursor.v == m.unwindowed.Rows()[i] {
+					m.cursor.n = i
+				}
+			}
+		}
+	}
+}
+
+// filter applies a filter to the unwindowed rows. If fn is nil and a filter is
+// currently applied then it is removed.
+func (m *window[V]) filter(fn func(V) bool) {
+	if filter, ok := m.unwindowed.(*filter[V]); ok {
+		if fn == nil {
+			// Remove filter
+			m.unwindowed = filter.data
+			return
+		}
+	}
+	m.unwindowed = newFilter(m.unwindowed, fn)
+	m.reset()
 }
 
 func (m *window[V]) PageUp() {
-	m.moveStart(-m.size)
+	m.moveCursor(-m.size)
 }
 
 func (m *window[V]) PageDown() {
-	m.moveStart(+m.size)
+	m.moveCursor(+m.size)
 }
 
-func (m *window[V]) moveStart(n int) {
-	if m.size == 0 || m.data.Rows() == 0 {
+func (m *window[V]) moveCursor(delta int) {
+	if m.size == 0 || len(m.unwindowed.Rows()) == 0 {
 		return
 	}
-	// Move start
-	lastRowIndex := m.data.Rows() - 1
-	m.start = clamp(m.start+n, 0, lastRowIndex)
-	// Move cursor
-	// maxCursor := min(m.start+m.size-1, lastRowIndex)
-	// m.cursor.idx = clamp(m.cursor.idx, m.start, maxCursor)
-	// m.cursor.id = m.getIDByIndex(m.cursor.idx)
+	m.cursor.n = clamp(m.cursor.n+delta, 0, len(m.unwindowed.Rows())-1)
+	m.cursor.v = m.unwindowed.Rows()[m.cursor.n]
+	m.setStart()
 }
 
-//func (m *window[V]) moveCursor(n int) {
-//	m.base.moveCursor(n)
-//	// Move start
-//	if m.size > 0 {
-//		startMin := max(0, m.cursor.idx-m.size+1)
-//		startMax := min(m.cursor.idx, len(m.rows)-m.size)
-//		m.start = clamp(m.start, startMin, startMax)
-//	}
-//}
+// reset resets the window, re-establishing the cursor and start rows; this is
+// necessary whenever rows are re-ordered or removed.
+func (m *window[V]) reset() {
+	// Check cursor index still corresponds to cursor value
+	if m.cursor.v != m.unwindowed.Rows()[m.cursor.n] {
+		// Value no longer corresponds, so search for value, and re-set cursor
+		// index
+		for i := range m.unwindowed.Rows() {
+			if m.cursor.v == m.unwindowed.Rows()[i] {
+				m.cursor.n = i
+			}
+		}
+	}
+	m.setStart()
+}
+
+func (m *window[V]) setStart() {
+	// Start index must be at least the cursor index minus the max number
+	// of visible rows.
+	minimum := max(0, m.cursor.n-m.size)
+	// Start index must be at most the lesser of:
+	// (a) the cursor index, or
+	// (b) the number of rows minus the maximum number of visible rows (so that
+	// as many rows as possible are rendered)
+	maximum := max(0, min(m.cursor.n, len(m.unwindowed.Rows())-m.size))
+	m.start = clamp(m.start, minimum, maximum)
+}
+
+func clamp(v, low, high int) int {
+	if high < low {
+		low, high = high, low
+	}
+	return min(high, max(low, v))
+}

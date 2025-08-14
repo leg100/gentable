@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestData_cursor(t *testing.T) {
+func TestWindow_cursor(t *testing.T) {
 	tests := []struct {
 		name string
 		do   func(*db[book])

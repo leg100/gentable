@@ -27,7 +27,7 @@ func TestModel(t *testing.T) {
 }
 
 func TestModel_withSort(t *testing.T) {
-	data := newData(
+	data := newDB(
 		func(v []string) ID {
 			id := i
 			i++

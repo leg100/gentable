@@ -2,46 +2,31 @@ package gentable
 
 import "slices"
 
-type ID any
-
-type base[V any] struct {
-	rows    []ID
-	db      map[ID]V
-	cells   map[ID][]string
+// base is the complete set of rows
+type base[V comparable] struct {
+	rows    []V
+	cells   map[V][]string
 	columns int
-	getID   func(V) ID
-	render  func(V) []string
 	sort    func(V, V) int
 }
 
-func newBase[V any](
-	getID func(V) ID,
-	render func(V) []string,
-) *base[V] {
-	return &base[V]{
-		db:     make(map[ID]V),
-		cells:  make(map[ID][]string),
-		getID:  getID,
-		render: render,
-	}
+type row[V comparable] struct {
+	v     V
+	cells []string
 }
 
-func (m *base[V]) Append(rows ...V) {
+func (m *base[V]) Append(rows ...row[V]) {
 	for _, row := range rows {
-		cells := m.render(row)
-		m.columns = max(m.columns, len(cells))
-		newID := m.getID(row)
-		m.rows = append(m.rows, newID)
-		m.db[newID] = row
-		m.cells[newID] = cells
+		m.cells[row.v] = row.cells
+		m.columns = max(m.columns, len(row.cells))
+		m.rows = append(m.rows, row.v)
+
+		//if m.cursor.id == nil {
+		//	m.cursor.id = m.rows[0]
+		//}
 	}
-	//if m.cursor.id == nil {
-	//	m.cursor.id = m.rows[0]
-	//}
 	if m.sort != nil {
-		slices.SortFunc(m.rows, func(a, b ID) int {
-			return m.sort(m.db[a], m.db[b])
-		})
+		slices.SortFunc(m.rows, m.sort)
 		//for i, id := range m.rows {
 		//	if id == m.cursor.id {
 		//		m.moveCursor(i - m.cursor.idx)

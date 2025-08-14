@@ -1,9 +1,9 @@
 package gentable
 
-import "github.com/charmbracelet/lipgloss/table"
-
+// window is the viewport of the visible rows
 type window[V any] struct {
-	table.Data
+	/// data is the unwindowed rows
+	data
 
 	start int
 	size  int
@@ -14,11 +14,11 @@ func (m *window[V]) At(row, cell int) string {
 	if row >= m.Rows() {
 		return ""
 	}
-	return m.Data.At(row+m.start, cell)
+	return m.data.At(row+m.start, cell)
 }
 
 func (m *window[V]) Rows() int {
-	return min(m.size, m.Data.Rows())
+	return min(m.size, m.data.Rows())
 }
 
 func (m *window[V]) PageUp() {
@@ -30,11 +30,11 @@ func (m *window[V]) PageDown() {
 }
 
 func (m *window[V]) moveStart(n int) {
-	if m.size == 0 || m.Data.Rows() == 0 {
+	if m.size == 0 || m.data.Rows() == 0 {
 		return
 	}
 	// Move start
-	lastRowIndex := m.Data.Rows() - 1
+	lastRowIndex := m.data.Rows() - 1
 	m.start = clamp(m.start+n, 0, lastRowIndex)
 	// Move cursor
 	// maxCursor := min(m.start+m.size-1, lastRowIndex)

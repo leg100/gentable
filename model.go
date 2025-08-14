@@ -1,28 +1,21 @@
 package gentable
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss/table"
 )
 
-func NewDefault() Model[[]string] {
-	var id int
-	getID := func(v []string) ID {
-		newID := id
-		id++
-		return newID
-	}
-	render := func(v []string) []string { return v }
-	m := Model[[]string]{
-		data: NewData[[]string](getID, render),
-		lt:   table.New().DisableOverflowRow(),
+func New[V comparable]() Model[V] {
+	m := Model[V]{
+		Table: table.New().DisableOverflowRow(),
 	}
 	return m
 }
 
-type Model[V any] struct {
-	lt   *table.Table
-	data *data[V]
+type Model[V comparable] struct {
+	*table.Table
+	*window[V]
 }
 
 func (m Model[V]) Init() tea.Cmd {
@@ -30,25 +23,30 @@ func (m Model[V]) Init() tea.Cmd {
 }
 
 func (m Model[V]) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	//switch msg := msg.(type) {
-	//case tea.KeyMsg:
-	//	switch {
-	//	case key.Matches(msg, keys.PageUp):
-	//		m.data.PageUp()
-	//	}
-	//}
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, keys.PageUp):
+			if win, ok := m.data.(*window[V]); ok {
+				win.PageUp()
+			}
+		case key.Matches(msg, keys.PageDown):
+			if win, ok := m.data.(*window[V]); ok {
+				win.PageDown()
+			}
+		}
+	}
 	return m, nil
 }
 
 func (m Model[V]) View() string {
-	return m.lt.String()
+	return m.Table.String()
 }
 
 func (m *Model[V]) Height(height int) {
-	m.lt.Height(height)
-	if window, ok := m.data.(interface {
-		SetWindowSize(int)
-	}); ok {
-		window.SetWindowSize(max(1, height-m.lt.NonRowHeight()))
-	}
+	m.Table.Height(height)
+
+	// TODO: we set a min of 1 because lipgloss's table has a min of 1, but we
+	// should change that in the lipgloss fork.
+	m.window.size = max(1, height-m.Table.NonRowHeight())
 }

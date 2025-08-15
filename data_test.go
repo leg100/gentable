@@ -11,8 +11,8 @@ func TestWindow_cursor(t *testing.T) {
 
 	t.Run("set cursor to first added row", func(t *testing.T) {
 		win := newWindow[isbn](0)
-		win.Append(Row[isbn]{v: 123, cells: []string{}})
-		win.Append(Row[isbn]{v: 456, cells: []string{}})
+		win.Append(Row[isbn]{V: 123, Cells: []string{}})
+		win.Append(Row[isbn]{V: 456, Cells: []string{}})
 
 		assert.Equal(t, 0, win.cursor.n)
 		assert.Equal(t, isbn(123), win.cursor.v)
@@ -20,8 +20,8 @@ func TestWindow_cursor(t *testing.T) {
 
 	t.Run("move cursor down one row", func(t *testing.T) {
 		win := newWindow[isbn](0)
-		win.Append(Row[isbn]{v: 123, cells: []string{}})
-		win.Append(Row[isbn]{v: 456, cells: []string{}})
+		win.Append(Row[isbn]{V: 123, Cells: []string{}})
+		win.Append(Row[isbn]{V: 456, Cells: []string{}})
 		win.moveCursor(1)
 
 		assert.Equal(t, 1, win.cursor.n)

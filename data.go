@@ -11,21 +11,21 @@ type data[V comparable] struct {
 }
 
 type Row[V comparable] struct {
-	v     V
-	cells []string
+	V     V
+	Cells []string
 }
 
 func (b *data[V]) Columns() int { return b.columns }
 
 func (b *data[V]) add(rows ...Row[V]) {
 	for _, row := range rows {
-		b.unfiltered = append(b.unfiltered, row.v)
-		b.cells[row.v] = row.cells
-		b.columns = max(b.columns, len(row.cells))
+		b.unfiltered = append(b.unfiltered, row.V)
+		b.cells[row.V] = row.Cells
+		b.columns = max(b.columns, len(row.Cells))
 
 		if b.filter != nil {
-			if b.filter(row.v) {
-				b.filtered = append(b.filtered, row.v)
+			if b.filter(row.V) {
+				b.filtered = append(b.filtered, row.V)
 			}
 		}
 	}

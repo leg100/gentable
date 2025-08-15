@@ -11,8 +11,8 @@ func TestWindow(t *testing.T) {
 
 	t.Run("set cursor to first added row", func(t *testing.T) {
 		win := newWindow[isbn](0)
-		win.Append(Row[isbn]{v: 123})
-		win.Append(Row[isbn]{v: 456})
+		win.Append(Row[isbn]{V: 123})
+		win.Append(Row[isbn]{V: 456})
 
 		assert.Equal(t, 0, win.cursor.n)
 		assert.Equal(t, isbn(123), win.cursor.v)
@@ -20,8 +20,8 @@ func TestWindow(t *testing.T) {
 
 	t.Run("move cursor down one row", func(t *testing.T) {
 		win := newWindow[isbn](0)
-		win.Append(Row[isbn]{v: 123})
-		win.Append(Row[isbn]{v: 456})
+		win.Append(Row[isbn]{V: 123})
+		win.Append(Row[isbn]{V: 456})
 
 		win.moveCursor(1)
 
@@ -31,8 +31,8 @@ func TestWindow(t *testing.T) {
 
 	t.Run("move cursor down and up one row", func(t *testing.T) {
 		win := newWindow[isbn](0)
-		win.Append(Row[isbn]{v: 123})
-		win.Append(Row[isbn]{v: 456})
+		win.Append(Row[isbn]{V: 123})
+		win.Append(Row[isbn]{V: 456})
 
 		win.moveCursor(1)
 		win.moveCursor(-1)
@@ -43,9 +43,9 @@ func TestWindow(t *testing.T) {
 
 	t.Run("cursor cannot move beyond last row", func(t *testing.T) {
 		win := newWindow[isbn](0)
-		win.Append(Row[isbn]{v: 123})
-		win.Append(Row[isbn]{v: 456})
-		win.Append(Row[isbn]{v: 789})
+		win.Append(Row[isbn]{V: 123})
+		win.Append(Row[isbn]{V: 456})
+		win.Append(Row[isbn]{V: 789})
 
 		win.moveCursor(999)
 
@@ -55,7 +55,7 @@ func TestWindow(t *testing.T) {
 
 	t.Run("cursor cannot move above first row", func(t *testing.T) {
 		win := newWindow[isbn](0)
-		win.Append(Row[isbn]{v: 123})
+		win.Append(Row[isbn]{V: 123})
 
 		win.moveCursor(-999)
 
@@ -65,7 +65,7 @@ func TestWindow(t *testing.T) {
 
 	t.Run("cursor cannot move above first row", func(t *testing.T) {
 		win := newWindow[isbn](0)
-		win.Append(Row[isbn]{v: 123})
+		win.Append(Row[isbn]{V: 123})
 
 		win.moveCursor(-999)
 
@@ -75,11 +75,11 @@ func TestWindow(t *testing.T) {
 
 	t.Run("moving cursor beyond window moves window down", func(t *testing.T) {
 		win := newWindow[isbn](3)
-		win.Append(Row[isbn]{v: 12})
-		win.Append(Row[isbn]{v: 34})
-		win.Append(Row[isbn]{v: 56})
-		win.Append(Row[isbn]{v: 78})
-		win.Append(Row[isbn]{v: 90})
+		win.Append(Row[isbn]{V: 12})
+		win.Append(Row[isbn]{V: 34})
+		win.Append(Row[isbn]{V: 56})
+		win.Append(Row[isbn]{V: 78})
+		win.Append(Row[isbn]{V: 90})
 
 		win.moveCursor(3)
 
@@ -90,14 +90,38 @@ func TestWindow(t *testing.T) {
 
 	t.Run("moving cursor above window moves window up", func(t *testing.T) {
 		win := newWindow[isbn](3)
-		win.Append(Row[isbn]{v: 12})
-		win.Append(Row[isbn]{v: 34})
-		win.Append(Row[isbn]{v: 56})
-		win.Append(Row[isbn]{v: 78})
-		win.Append(Row[isbn]{v: 90})
+		win.Append(Row[isbn]{V: 12})
+		win.Append(Row[isbn]{V: 34})
+		win.Append(Row[isbn]{V: 56})
+		win.Append(Row[isbn]{V: 78})
+		win.Append(Row[isbn]{V: 90})
 
 		// move cursor beyond window to move window down
 		win.moveCursor(4)
+
+		// first visible row is now index 2
+		assert.Equal(t, 2, win.start)
+
+		win.moveCursor(-3)
+
+		// first visible row is now index 1
+		assert.Equal(t, 1, win.start)
+	})
+
+	t.Run("shrinking window moves cursor", func(t *testing.T) {
+		// window with all rows visible
+		win := newWindow[isbn](5)
+		win.Append(Row[isbn]{V: 12})
+		win.Append(Row[isbn]{V: 34})
+		win.Append(Row[isbn]{V: 56})
+		win.Append(Row[isbn]{V: 78})
+		win.Append(Row[isbn]{V: 90})
+
+		// move cursor to last row
+		win.moveCursor(4)
+
+		// shrink window to 3 rows
+		win.setSize(3)
 
 		// first visible row is now index 2
 		assert.Equal(t, 2, win.start)

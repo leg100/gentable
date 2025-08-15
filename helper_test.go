@@ -8,10 +8,6 @@ type book struct {
 	author string
 }
 
-func renderBook(b book) []string {
-	return []string{b.author, b.title}
-}
-
 var books = []book{
 	{
 		title:  "The German Ideology",

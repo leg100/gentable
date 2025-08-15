@@ -32,6 +32,7 @@ func newWindow[V comparable](size int) *window[V] {
 	}
 }
 
+// Append appends rows to the table data.
 func (m *window[V]) Append(rows ...Row[V]) {
 	m.data.add(rows...)
 
@@ -79,6 +80,14 @@ func (m *window[V]) PageDown() {
 	m.moveCursor(m.size)
 }
 
+func (m *window[V]) toTop() {
+	m.moveCursor(-m.cursor.n)
+}
+
+func (m *window[V]) toBottom() {
+	m.moveCursor(len(m.rows()) - m.cursor.n)
+}
+
 func (m *window[V]) moveCursor(delta int) {
 	if len(m.rows()) == 0 {
 		return
@@ -91,6 +100,9 @@ func (m *window[V]) moveCursor(delta int) {
 // reset resets the window, re-establishing the cursor and start rows; this is
 // necessary whenever visible rows are re-ordered or removed.
 func (m *window[V]) reset() {
+	if len(m.rows()) == 0 {
+		return
+	}
 	// Check cursor index still corresponds to cursor value
 	var found bool
 	if m.cursor.v != m.rows()[m.cursor.n] {
@@ -107,9 +119,8 @@ func (m *window[V]) reset() {
 	if !found {
 		// Value corresponding to cursor can not be found; this happens when the
 		// cursor has not been set yet or the value has been filtered out.
-		if len(m.rows()) > 0 {
-			m.cursor.v = m.rows()[0]
-		}
+		m.cursor.v = m.rows()[0]
+		m.cursor.n = 0
 	}
 	m.setStart()
 }

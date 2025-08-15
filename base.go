@@ -14,9 +14,9 @@ type row[V comparable] struct {
 
 func (m *base[V]) Append(rows ...row[V]) {
 	for _, row := range rows {
+		m.rows = append(m.rows, row.v)
 		m.cells[row.v] = row.cells
 		m.columns = max(m.columns, len(row.cells))
-		m.rows = append(m.rows, row.v)
 	}
 }
 

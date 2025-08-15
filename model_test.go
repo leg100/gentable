@@ -10,69 +10,69 @@ import (
 func TestModel(t *testing.T) {
 	m := booksModel()
 	want := strings.TrimSpace(`
-╭─────────────────────────────────┬────────────────╮
-│The German Ideology              │Marx & Engels   │
-│Death in Venice and Other Stories│Thomas Mann     │
-│Money                            │Martin Amis     │
-│London Fields                    │Martin Amis     │
-│Nana                             │Emile Zola      │
-│To Have and Have Not             │Ernest Hemingway│
-│The Sun Also Rises               │Ernest Hemingway│
-│A Farewell to Arms               │Ernest Hemingway│
-│James Joyce                      │Ulysses         │
-│Trans-Europe Express             │Owen Hatherley  │
-╰─────────────────────────────────┴────────────────╯
+╭────────────┬─────────────────────────────────┬────────────────╮
+│390039233003│The German Ideology              │Marx & Engels   │
+│390039233004│Death in Venice and Other Stories│Thomas Mann     │
+│390039233005│Money                            │Martin Amis     │
+│390039233006│London Fields                    │Martin Amis     │
+│390039233007│Nana                             │Emile Zola      │
+│390039233008│To Have and Have Not             │Ernest Hemingway│
+│390039233009│The Sun Also Rises               │Ernest Hemingway│
+│390039233010│A Farewell to Arms               │Ernest Hemingway│
+│390039233011│James Joyce                      │Ulysses         │
+│390039233012│Trans-Europe Express             │Owen Hatherley  │
+╰────────────┴─────────────────────────────────┴────────────────╯
 `)
 	assert.Equal(t, want, m.View())
 }
 
 func TestModel_withSort(t *testing.T) {
-	m := booksModel()
-	m.sort = func(a, b book) int {
+	sort := WithSort(func(a, b book) int {
 		// sort by author then by their book
 		cmp := strings.Compare(a.author, b.author)
 		if cmp == 0 {
 			return strings.Compare(a.title, b.title)
 		}
 		return cmp
-	}
+	})
+	m := booksModel(sort)
 	want := strings.TrimSpace(`
-╭────────────────┬─────────────────────────────────╮
-│Emile Zola      │Nana                             │
-│Ernest Hemingway│A Farewell to Arms               │
-│Ernest Hemingway│The Sun Also Rises               │
-│Ernest Hemingway│To Have and Have Not             │
-│Martin Amis     │London Fields                    │
-│Martin Amis     │Money                            │
-│Marx & Engels   │The German Ideology              │
-│Owen Hatherley  │Trans-Europe Express             │
-│Thomas Mann     │Death in Venice and Other Stories│
-│Ulysses         │James Joyce                      │
-╰────────────────┴─────────────────────────────────╯
+╭────────────┬─────────────────────────────────┬────────────────╮
+│390039233007│Nana                             │Emile Zola      │
+│390039233010│A Farewell to Arms               │Ernest Hemingway│
+│390039233009│The Sun Also Rises               │Ernest Hemingway│
+│390039233008│To Have and Have Not             │Ernest Hemingway│
+│390039233006│London Fields                    │Martin Amis     │
+│390039233005│Money                            │Martin Amis     │
+│390039233003│The German Ideology              │Marx & Engels   │
+│390039233012│Trans-Europe Express             │Owen Hatherley  │
+│390039233004│Death in Venice and Other Stories│Thomas Mann     │
+│390039233011│James Joyce                      │Ulysses         │
+╰────────────┴─────────────────────────────────┴────────────────╯
 `)
 	assert.Equal(t, want, m.View())
 }
 
-//func TestModel_Height(t *testing.T) {
-//	m := modelWithWindowStringData()
-//	m.Height(5)
-//	want := strings.TrimSpace(`
-//╭─────────────────────────────────┬─────────────╮
-//│The German Ideology              │Marx & Engels│
-//│Death in Venice and Other Stories│Thomas Mann  │
-//│Money                            │Martin Amis  │
-//╰─────────────────────────────────┴─────────────╯
-//`)
-//	assert.Equal(t, want, m.View())
-//}
+func TestModel_Height(t *testing.T) {
+	m := booksModel()
+	m.Height(5)
+	want := strings.TrimSpace(`
+╭────────────┬─────────────────────────────────┬─────────────╮
+│390039233003│The German Ideology              │Marx & Engels│
+│390039233004│Death in Venice and Other Stories│Thomas Mann  │
+│390039233005│Money                            │Martin Amis  │
+╰────────────┴─────────────────────────────────┴─────────────╯
+`)
+	assert.Equal(t, want, m.View())
+}
 
 func TestModel_Height_0(t *testing.T) {
 	m := booksModel()
 	m.Height(0)
 	want := strings.TrimSpace(`
-╭───────────────────┬─────────────╮
-│The German Ideology│Marx & Engels│
-╰───────────────────┴─────────────╯
+╭────────────┬───────────────────┬─────────────╮
+│390039233003│The German Ideology│Marx & Engels│
+╰────────────┴───────────────────┴─────────────╯
 `)
 	assert.Equal(t, want, m.View())
 }
@@ -169,8 +169,11 @@ func TestModel_Height_0(t *testing.T) {
 //	assert.Equal(t, 2, m.data.(*window).cursor)
 //}
 
-func booksModel() Model[book] {
+func booksModel(opts ...Option[book]) Model[book] {
 	m := New[book]()
+	for _, fn := range opts {
+		fn(&m)
+	}
 	for _, bk := range books {
 		m.Append(row[book]{
 			v: bk,

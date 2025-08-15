@@ -11,9 +11,19 @@ type window[V comparable] struct {
 	// start is the unwindowed row index of the first visible row.
 	start int
 	// size is the number of terminal rows the window occupies (not necessarily
-	// populated with data).
+	// populated with data). Zero means it occupies an unlimited number of
+	// terminal rows, effectively disabling windowing.
 	size int
 	sort func(V, V) int
+}
+
+func newWindow[V comparable](size int) *window[V] {
+	return &window[V]{
+		size: size,
+		unwindowed: &base[V]{
+			cells: make(map[V][]string),
+		},
+	}
 }
 
 // cursor is the currently highlighted row
@@ -25,13 +35,13 @@ type cursor[V comparable] struct {
 // At returns the contents of the cell at the given index of windowed data.
 func (m *window[V]) At(row, cell int) string {
 	// TODO: this should never happen?
-	if row >= m.size {
-		return ""
-	}
-	// TODO: this should never happen?
-	if m.start+row >= len(m.unwindowed.Rows()) {
-		return ""
-	}
+	//if row >= m.size {
+	//	return ""
+	//}
+	//// TODO: this should never happen?
+	//if m.start+row >= len(m.unwindowed.Rows()) {
+	//	return ""
+	//}
 	v := m.unwindowed.Rows()[row+m.start]
 	cells := m.unwindowed.getCells(v)
 	if cell >= len(cells) {
@@ -44,6 +54,9 @@ func (m *window[V]) At(row, cell int) string {
 
 // Rows returns the number of populated rows in the window
 func (m *window[V]) Rows() int {
+	if m.size == 0 {
+		return len(m.unwindowed.Rows())
+	}
 	return min(m.size, len(m.unwindowed.Rows()))
 }
 
@@ -56,18 +69,8 @@ func (m *window[V]) Append(rows ...row[V]) {
 
 	if m.sort != nil {
 		slices.SortFunc(m.unwindowed.Rows(), m.sort)
-
-		// Check cursor index still corresponds to cursor value
-		if m.cursor.v != m.unwindowed.Rows()[m.cursor.n] {
-			// Value no longer corresponds, so search for value, and re-set cursor
-			// index
-			for i := range m.unwindowed.Rows() {
-				if m.cursor.v == m.unwindowed.Rows()[i] {
-					m.cursor.n = i
-				}
-			}
-		}
 	}
+	m.reset()
 }
 
 // filter applies a filter to the unwindowed rows. If fn is nil and a filter is
@@ -93,7 +96,7 @@ func (m *window[V]) PageDown() {
 }
 
 func (m *window[V]) moveCursor(delta int) {
-	if m.size == 0 || len(m.unwindowed.Rows()) == 0 {
+	if len(m.unwindowed.Rows()) == 0 {
 		return
 	}
 	m.cursor.n = clamp(m.cursor.n+delta, 0, len(m.unwindowed.Rows())-1)
@@ -105,13 +108,23 @@ func (m *window[V]) moveCursor(delta int) {
 // necessary whenever rows are re-ordered or removed.
 func (m *window[V]) reset() {
 	// Check cursor index still corresponds to cursor value
+	var found bool
 	if m.cursor.v != m.unwindowed.Rows()[m.cursor.n] {
 		// Value no longer corresponds, so search for value, and re-set cursor
 		// index
 		for i := range m.unwindowed.Rows() {
 			if m.cursor.v == m.unwindowed.Rows()[i] {
 				m.cursor.n = i
+				found = true
+				break
 			}
+		}
+	}
+	if !found {
+		// Value corresponding to cursor can not be found; this happens when the
+		// cursor has not been set yet or the value has been filtered out.
+		if len(m.unwindowed.Rows()) > 0 {
+			m.cursor.v = m.unwindowed.Rows()[0]
 		}
 	}
 	m.setStart()

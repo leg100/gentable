@@ -6,11 +6,14 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 )
 
-func New[V comparable]() Model[V] {
-	window := &window[V]{}
+func New[V comparable](opts ...Option[V]) Model[V] {
+	window := newWindow[V](10)
 	m := Model[V]{
 		Table:  table.New().DisableOverflowRow().Data(window),
 		window: window,
+	}
+	for _, fn := range opts {
+		fn(&m)
 	}
 	return m
 }
@@ -47,4 +50,6 @@ func (m *Model[V]) Height(height int) {
 	// TODO: we set a min of 1 because lipgloss's table has a min of 1, but we
 	// should change that in the lipgloss fork.
 	m.window.size = max(1, height-m.Table.NonRowHeight())
+
+	// TODO: clamp cursor on window, maybe use a new setSize() method
 }

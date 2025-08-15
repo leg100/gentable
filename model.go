@@ -7,10 +7,10 @@ import (
 )
 
 func New[V comparable](opts ...Option[V]) Model[V] {
-	window := newData[V](10)
+	window := newWindow[V](10)
 	m := Model[V]{
-		Table: table.New().DisableOverflowRow().Data(window),
-		data:  window,
+		Table:  table.New().DisableOverflowRow().Data(window),
+		window: window,
 	}
 	for _, fn := range opts {
 		fn(&m)
@@ -20,7 +20,7 @@ func New[V comparable](opts ...Option[V]) Model[V] {
 
 type Model[V comparable] struct {
 	*table.Table
-	*data[V]
+	*window[V]
 }
 
 func (m Model[V]) Init() tea.Cmd {
@@ -32,9 +32,9 @@ func (m Model[V]) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.PageUp):
-			m.data.PageUp()
+			m.window.PageUp()
 		case key.Matches(msg, keys.PageDown):
-			m.data.PageDown()
+			m.window.PageDown()
 		}
 	}
 	return m, nil
@@ -49,7 +49,5 @@ func (m *Model[V]) Height(height int) {
 
 	// TODO: we set a min of 1 because lipgloss's table has a min of 1, but we
 	// should change that in the lipgloss fork.
-	m.data.size = max(1, height-m.Table.NonRowHeight())
-
-	// TODO: clamp cursor on window, maybe use a new setSize() method
+	m.window.setSize(max(1, height-m.Table.NonRowHeight()))
 }

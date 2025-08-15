@@ -77,17 +77,72 @@ func TestModel_Height_0(t *testing.T) {
 	assert.Equal(t, want, m.View())
 }
 
-//func TestModel_PageUp(t *testing.T) {
-//	m := modelWithWindowStringData()
-//	m.Height(5)
-//	m.data.(*window).PageDown()
-//	want := strings.TrimSpace(`
-//╭────────────────────┬────────────────╮
-//│London Fields       │Martin Amis     │
-//│Nana                │Emile Zola      │
-//│To Have and Have Not│Ernest Hemingway│
-//╰────────────────────┴────────────────╯
-//`)
+func TestModel_PageDown(t *testing.T) {
+	m := booksModel()
+	m.Height(5)
+
+	m.window.PageDown()
+
+	want := strings.TrimSpace(`
+╭────────────┬─────────────────────────────────┬───────────╮
+│390039233004│Death in Venice and Other Stories│Thomas Mann│
+│390039233005│Money                            │Martin Amis│
+│390039233006│London Fields                    │Martin Amis│
+╰────────────┴─────────────────────────────────┴───────────╯
+`)
+	assert.Equal(t, want, m.View())
+
+	m.window.PageDown()
+
+	want = strings.TrimSpace(`
+╭────────────┬────────────────────┬────────────────╮
+│390039233007│Nana                │Emile Zola      │
+│390039233008│To Have and Have Not│Ernest Hemingway│
+│390039233009│The Sun Also Rises  │Ernest Hemingway│
+╰────────────┴────────────────────┴────────────────╯
+`)
+	assert.Equal(t, want, m.View())
+
+	m.window.PageDown()
+
+	want = strings.TrimSpace(`
+╭────────────┬────────────────────┬────────────────╮
+│390039233010│A Farewell to Arms  │Ernest Hemingway│
+│390039233011│James Joyce         │Ulysses         │
+│390039233012│Trans-Europe Express│Owen Hatherley  │
+╰────────────┴────────────────────┴────────────────╯
+`)
+	assert.Equal(t, want, m.View())
+
+	// no more books so should be a no-op
+	m.window.PageDown()
+
+	want = strings.TrimSpace(`
+╭────────────┬────────────────────┬────────────────╮
+│390039233010│A Farewell to Arms  │Ernest Hemingway│
+│390039233011│James Joyce         │Ulysses         │
+│390039233012│Trans-Europe Express│Owen Hatherley  │
+╰────────────┴────────────────────┴────────────────╯
+`)
+	assert.Equal(t, want, m.View())
+}
+
+func TestModel_PageUp(t *testing.T) {
+	m := booksModel()
+	m.Height(5)
+	m.window.PageDown()
+	m.window.PageDown()
+	m.window.PageUp()
+	want := strings.TrimSpace(`
+╭────────────┬────────────────────┬────────────────╮
+│390039233006│London Fields       │Martin Amis     │
+│390039233007│Nana                │Emile Zola      │
+│390039233008│To Have and Have Not│Ernest Hemingway│
+╰────────────┴────────────────────┴────────────────╯
+`)
+	assert.Equal(t, want, m.View())
+}
+
 //	assert.Equal(t, want, m.View())
 //	assert.Equal(t, 3, m.data.(*window).cursor)
 //
@@ -175,7 +230,7 @@ func booksModel(opts ...Option[book]) Model[book] {
 		fn(&m)
 	}
 	for _, bk := range books {
-		m.Append(row[book]{
+		m.Append(Row[book]{
 			v: bk,
 			cells: []string{
 				string(bk.isbn),

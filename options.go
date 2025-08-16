@@ -7,3 +7,9 @@ func WithSort[V comparable](fn func(V, V) int) Option[V] {
 		m.sort = fn
 	}
 }
+
+func WithHeight[V comparable](height int) Option[V] {
+	return func(m *Model[V]) {
+		m.Height(height)
+	}
+}

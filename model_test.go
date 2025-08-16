@@ -86,9 +86,21 @@ func TestModel_Filter(t *testing.T) {
 	assert.Equal(t, want, m.View())
 }
 
-func TestModel_Height(t *testing.T) {
+func TestModel_Height_Before(t *testing.T) {
 	m := booksModel()
 	m.Height(5)
+	want := strings.TrimSpace(`
+╭────────────┬─────────────────────────────────┬─────────────╮
+│390039233003│The German Ideology              │Marx & Engels│
+│390039233004│Death in Venice and Other Stories│Thomas Mann  │
+│390039233005│Money                            │Martin Amis  │
+╰────────────┴─────────────────────────────────┴─────────────╯
+`)
+	assert.Equal(t, want, m.View())
+}
+
+func TestModel_Height_After(t *testing.T) {
+	m := booksModel(WithHeight[book](5))
 	want := strings.TrimSpace(`
 ╭────────────┬─────────────────────────────────┬─────────────╮
 │390039233003│The German Ideology              │Marx & Engels│

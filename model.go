@@ -10,7 +10,7 @@ import (
 func New[V comparable](opts ...Option[V]) Model[V] {
 	window := newWindow[V](10)
 	m := Model[V]{
-		rendering: table.New().DisableOverflowRow().Data(window),
+		rendering: table.New().Data(window).Wrap(true),
 		window:    window,
 	}
 	for _, fn := range opts {
@@ -77,11 +77,17 @@ func (m *Model[V]) Height(height int) {
 
 	// TODO: we set a minimum of 1 because lipgloss's table has a minimum of 1,
 	// but we should change that in the lipgloss fork.
-	m.window.setSize(max(1, height-m.rendering.NonRowHeight()))
+	m.window.setSize(m.rendering.AvailableRows())
+}
+
+// Height sets the table height.
+func (m *Model[V]) Width(width int) {
+	m.rendering.Width(width)
 }
 
 // Headers sets the table headers.
-func (t *Model[V]) Headers(headers ...string) *Model[V] {
-	t.rendering.Headers(headers...)
-	return t
+func (m *Model[V]) Headers(headers ...string) *Model[V] {
+	m.rendering.Headers(headers...)
+	m.window.setSize(m.rendering.AvailableRows())
+	return m
 }

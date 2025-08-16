@@ -80,6 +80,18 @@ func (m *window[V]) PageDown() {
 	m.moveCursor(m.size)
 }
 
+func (m *window[V]) StartIndex() int {
+	return m.start
+}
+
+func (m *window[V]) CursorIndex() int {
+	return m.cursor.n
+}
+
+func (m *window[V]) Size() int {
+	return m.size
+}
+
 func (m *window[V]) toTop() {
 	m.moveCursor(-m.cursor.n)
 }

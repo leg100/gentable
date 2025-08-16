@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,8 +12,9 @@ func main() {
 	m := model{
 		Model: gentable.New[book](),
 	}
-	m.Height(6)
 	m.Headers("isbn", "title", "author")
+	m.Height(6)
+	m.Width(30)
 	for _, bk := range books {
 		m.Append(gentable.Row[book]{
 			V: bk,
@@ -60,7 +62,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	body := strings.Builder{}
 
-	body.WriteString("A very simple default table (non-interactive)\nPress q or ctrl+c to quit\n\n")
+	fmt.Fprintf(&body, "cursor: %d\n", m.Model.CursorIndex())
+	fmt.Fprintf(&body, "start: %d\n", m.Model.StartIndex())
+	fmt.Fprintf(&body, "size: %d\n", m.Model.Size())
 
 	body.WriteString(m.Model.View())
 

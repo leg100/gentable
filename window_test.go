@@ -3,6 +3,7 @@ package gentable
 import (
 	"testing"
 
+	"github.com/charmbracelet/lipgloss/v2/table"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -10,7 +11,7 @@ func TestWindow(t *testing.T) {
 	type isbn int
 
 	t.Run("set cursor to first added row", func(t *testing.T) {
-		win := newWindow[isbn](0)
+		win := newWindow[isbn](&testWindowTable{})
 		win.Append(Row[isbn]{V: 123})
 		win.Append(Row[isbn]{V: 456})
 
@@ -19,7 +20,7 @@ func TestWindow(t *testing.T) {
 	})
 
 	t.Run("move cursor down one row", func(t *testing.T) {
-		win := newWindow[isbn](0)
+		win := newWindow[isbn](&testWindowTable{})
 		win.Append(Row[isbn]{V: 123})
 		win.Append(Row[isbn]{V: 456})
 
@@ -30,7 +31,7 @@ func TestWindow(t *testing.T) {
 	})
 
 	t.Run("move cursor down and up one row", func(t *testing.T) {
-		win := newWindow[isbn](0)
+		win := newWindow[isbn](&testWindowTable{})
 		win.Append(Row[isbn]{V: 123})
 		win.Append(Row[isbn]{V: 456})
 
@@ -42,7 +43,7 @@ func TestWindow(t *testing.T) {
 	})
 
 	t.Run("cursor cannot move beyond last row", func(t *testing.T) {
-		win := newWindow[isbn](0)
+		win := newWindow[isbn](&testWindowTable{})
 		win.Append(Row[isbn]{V: 123})
 		win.Append(Row[isbn]{V: 456})
 		win.Append(Row[isbn]{V: 789})
@@ -54,7 +55,7 @@ func TestWindow(t *testing.T) {
 	})
 
 	t.Run("cursor cannot move above first row", func(t *testing.T) {
-		win := newWindow[isbn](0)
+		win := newWindow[isbn](&testWindowTable{})
 		win.Append(Row[isbn]{V: 123})
 
 		win.moveCursor(-999)
@@ -64,7 +65,7 @@ func TestWindow(t *testing.T) {
 	})
 
 	t.Run("cursor cannot move above first row", func(t *testing.T) {
-		win := newWindow[isbn](0)
+		win := newWindow[isbn](&testWindowTable{})
 		win.Append(Row[isbn]{V: 123})
 
 		win.moveCursor(-999)
@@ -74,7 +75,7 @@ func TestWindow(t *testing.T) {
 	})
 
 	t.Run("moving cursor beyond window moves window down", func(t *testing.T) {
-		win := newWindow[isbn](3)
+		win := newWindow[isbn](&testWindowTable{size: 3})
 		win.Append(Row[isbn]{V: 12})
 		win.Append(Row[isbn]{V: 34})
 		win.Append(Row[isbn]{V: 56})
@@ -83,13 +84,13 @@ func TestWindow(t *testing.T) {
 
 		win.moveCursor(3)
 
-		assert.Equal(t, 1, win.start)
+		assert.Equal(t, 1, win.GetYOffset())
 		assert.Equal(t, 3, win.cursor.n)
 		assert.Equal(t, isbn(78), win.cursor.v)
 	})
 
 	t.Run("moving cursor above window moves window up", func(t *testing.T) {
-		win := newWindow[isbn](3)
+		win := newWindow[isbn](&testWindowTable{size: 3})
 		win.Append(Row[isbn]{V: 12})
 		win.Append(Row[isbn]{V: 34})
 		win.Append(Row[isbn]{V: 56})
@@ -100,17 +101,18 @@ func TestWindow(t *testing.T) {
 		win.moveCursor(4)
 
 		// first visible row is now index 2
-		assert.Equal(t, 2, win.start)
+		assert.Equal(t, 2, win.GetYOffset())
 
 		win.moveCursor(-3)
 
 		// first visible row is now index 1
-		assert.Equal(t, 1, win.start)
+		assert.Equal(t, 1, win.GetYOffset())
 	})
 
 	t.Run("shrinking window moves cursor", func(t *testing.T) {
 		// window with all rows visible
-		win := newWindow[isbn](5)
+		table := &testWindowTable{size: 5}
+		win := newWindow[isbn](table)
 		win.Append(Row[isbn]{V: 12})
 		win.Append(Row[isbn]{V: 34})
 		win.Append(Row[isbn]{V: 56})
@@ -121,14 +123,33 @@ func TestWindow(t *testing.T) {
 		win.moveCursor(4)
 
 		// shrink window to 3 rows
-		win.setSize(3)
+		table.size = 3
+		win.reset()
 
-		// first visible row is now index 2
-		assert.Equal(t, 2, win.start)
+		// first visible row should now be index 2
+		assert.Equal(t, 2, win.GetYOffset())
 
 		win.moveCursor(-3)
 
 		// first visible row is now index 1
-		assert.Equal(t, 1, win.start)
+		assert.Equal(t, 1, win.GetYOffset())
 	})
+}
+
+type testWindowTable struct {
+	yoffset int
+	size    int
+}
+
+func (t *testWindowTable) GetYOffset() int {
+	return t.yoffset
+}
+
+func (t *testWindowTable) YOffset(o int) *table.Table {
+	t.yoffset = o
+	return nil
+}
+
+func (t *testWindowTable) VisibleRows() int {
+	return t.size
 }

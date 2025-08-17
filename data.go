@@ -15,6 +15,19 @@ type Row[V comparable] struct {
 	Cells []string
 }
 
+func (d *data[V]) At(row, cell int) string {
+	v := d.rows()[row]
+	cells := d.cells[v]
+	if cell >= len(cells) {
+		// Not all rows have the same number of cells but the lipgloss table lib
+		// that calls this method doesn't know that.
+		return ""
+	}
+	return cells[cell]
+}
+
+func (d *data[V]) Rows() int { return len(d.rows()) }
+
 func (b *data[V]) Columns() int { return b.columns }
 
 func (b *data[V]) add(rows ...Row[V]) {

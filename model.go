@@ -2,16 +2,21 @@ package gentable
 
 import (
 	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
+	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/charmbracelet/lipgloss/v2/table"
 )
 
 func New[V comparable](opts ...Option[V]) Model[V] {
-	window := newWindow[V](10)
+	table := table.New()
+	window := newWindow[V](table)
+	table.Data(window)
+	table.Border(lipgloss.HiddenBorder()).
+		BorderHeader(false)
+
 	m := Model[V]{
-		rendering: table.New().Data(window).Wrap(true),
-		window:    window,
+		table:  table,
+		window: window,
 	}
 	for _, fn := range opts {
 		fn(&m)
@@ -20,8 +25,9 @@ func New[V comparable](opts ...Option[V]) Model[V] {
 }
 
 type Model[V comparable] struct {
-	rendering *table.Table
 	*window[V]
+	// table is the wrapped lipgloss table responsible for actual rendering
+	table *table.Table
 }
 
 func (m Model[V]) Init() tea.Cmd {
@@ -50,8 +56,8 @@ func (m Model[V]) Update(msg tea.Msg) (Model[V], tea.Cmd) {
 			m.window.toBottom()
 		}
 	}
-	m.rendering.StyleFunc(func(row, col int) lipgloss.Style {
-		if m.window.start+row == m.cursor.n {
+	m.table.StyleFunc(func(row, col int) lipgloss.Style {
+		if row == m.cursor.n {
 			return lipgloss.NewStyle().Background(lipgloss.Color("#ffffff"))
 		}
 		return lipgloss.NewStyle()
@@ -60,34 +66,49 @@ func (m Model[V]) Update(msg tea.Msg) (Model[V], tea.Cmd) {
 }
 
 func (m Model[V]) View() string {
-	return m.rendering.String()
-}
-
-func (m *Model[V]) Filter(fn func(V) bool) {
-	m.window.applyFilter(fn)
-}
-
-func (m *Model[V]) RemoveFilter() {
-	m.window.removeFilter()
+	return m.table.String()
 }
 
 // Height sets the table height.
 func (m *Model[V]) Height(height int) {
-	m.rendering.Height(height)
-
-	// TODO: we set a minimum of 1 because lipgloss's table has a minimum of 1,
-	// but we should change that in the lipgloss fork.
-	m.window.setSize(m.rendering.AvailableRows())
+	m.table.Height(height)
+	// Setting the height alters the number of visible rows, so the window needs
+	// resetting.
+	m.window.reset()
 }
 
-// Height sets the table height.
+// Width sets the table width.
 func (m *Model[V]) Width(width int) {
-	m.rendering.Width(width)
+	m.table.Width(width)
 }
 
 // Headers sets the table headers.
 func (m *Model[V]) Headers(headers ...string) *Model[V] {
-	m.rendering.Headers(headers...)
-	m.window.setSize(m.rendering.AvailableRows())
+	m.table.Headers(headers...)
+	// adding headers can alter the number of visible rows, so the window needs
+	// resetting.
+	m.window.reset()
+	return m
+}
+
+func (m *Model[V]) FirstVisibleRowIndex() int {
+	return m.table.FirstVisibleRowIndex()
+}
+
+func (m *Model[V]) LastVisibleRowIndex() int {
+	return m.table.LastVisibleRowIndex()
+}
+
+// Border sets the table border.
+func (m *Model[V]) Border(border lipgloss.Border) *Model[V] {
+	m.table.Border(border)
+	return m
+}
+
+// Wrap dictates whether or not the table content should wrap.
+//
+// This only applies to data cells. Headers are never wrapped.
+func (m *Model[V]) Wrap(w bool) *Model[V] {
+	m.table.Wrap(w)
 	return m
 }

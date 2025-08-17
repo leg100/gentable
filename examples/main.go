@@ -1,10 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"strings"
-
-	tea "github.com/charmbracelet/bubbletea"
+	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/leg100/gentable"
 )
 
@@ -12,9 +9,8 @@ func main() {
 	m := model{
 		Model: gentable.New[book](),
 	}
-	m.Headers("isbn", "title", "author")
-	m.Height(6)
-	m.Width(30)
+	m.Headers("ISBN", "TITLE", "AUTHOR")
+	m.Wrap(false)
 	for _, bk := range books {
 		m.Append(gentable.Row[book]{
 			V: bk,
@@ -54,21 +50,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "esc", "q":
 			cmds = append(cmds, tea.Quit)
 		}
+	case tea.WindowSizeMsg:
+		m.Height(msg.Height)
+		m.Width(msg.Width)
 	}
 
 	return m, tea.Batch(cmds...)
-}
-
-func (m model) View() string {
-	body := strings.Builder{}
-
-	fmt.Fprintf(&body, "cursor: %d\n", m.Model.CursorIndex())
-	fmt.Fprintf(&body, "start: %d\n", m.Model.StartIndex())
-	fmt.Fprintf(&body, "size: %d\n", m.Model.Size())
-
-	body.WriteString(m.Model.View())
-
-	return body.String()
 }
 
 type isbn string

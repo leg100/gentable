@@ -7,9 +7,9 @@ toolchain go1.24.4
 require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.4
-	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta1
+	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4
 	github.com/charmbracelet/lipgloss v1.0.0
-	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta1
+	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta3
 	github.com/charmbracelet/x/ansi v0.10.1
 	github.com/charmbracelet/x/exp/golden v0.0.0-20250609102027-b60490452b30
 	github.com/google/uuid v1.6.0
@@ -46,6 +46,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/charmbracelet/lipgloss/v2 => ../lipgloss
-
-replace github.com/charmbracelet/bubbletea/v2 => ../bubbletea
+replace github.com/charmbracelet/lipgloss/v2 => github.com/leg100/lipgloss/v2 v2.0.0-alpha.2.0.20250817182048-7ae04c8775c7

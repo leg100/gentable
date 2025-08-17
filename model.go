@@ -8,11 +8,9 @@ import (
 )
 
 func New[V comparable](opts ...Option[V]) Model[V] {
-	table := table.New()
+	table := table.New().Overflow(false)
 	window := newWindow[V](table)
 	table.Data(window)
-	table.Border(lipgloss.HiddenBorder()).
-		BorderHeader(false)
 
 	m := Model[V]{
 		table:  table,

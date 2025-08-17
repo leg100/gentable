@@ -29,7 +29,8 @@ type windowTable interface {
 func newWindow[V comparable](table windowTable) *window[V] {
 	return &window[V]{
 		data: &data[V]{
-			cells: make(map[V][]string),
+			cells:    make(map[V][]string),
+			selected: make(map[V]bool),
 		},
 		windowTable: table,
 	}

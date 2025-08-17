@@ -5,12 +5,15 @@ import (
 )
 
 var keys = struct {
-	LineUp     key.Binding
-	LineDown   key.Binding
-	PageUp     key.Binding
-	PageDown   key.Binding
-	GotoTop    key.Binding
-	GotoBottom key.Binding
+	LineUp      key.Binding
+	LineDown    key.Binding
+	PageUp      key.Binding
+	PageDown    key.Binding
+	GotoTop     key.Binding
+	GotoBottom  key.Binding
+	Select      key.Binding
+	SelectAll   key.Binding
+	SelectClear key.Binding
 }{
 	LineUp: key.NewBinding(
 		key.WithKeys("up", "k"),
@@ -35,5 +38,17 @@ var keys = struct {
 	GotoBottom: key.NewBinding(
 		key.WithKeys("end", "G"),
 		key.WithHelp("G/end", "go to end"),
+	),
+	Select: key.NewBinding(
+		key.WithKeys("space"),
+		key.WithHelp("<space>", "select"),
+	),
+	SelectAll: key.NewBinding(
+		key.WithKeys("ctrl+a"),
+		key.WithHelp("ctrl+a", "select all"),
+	),
+	SelectClear: key.NewBinding(
+		key.WithKeys(`ctrl+\`),
+		key.WithHelp(`ctrl+\`, "clear selection"),
 	),
 }

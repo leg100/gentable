@@ -54,13 +54,23 @@ func (m Model[V]) Update(msg tea.Msg) (Model[V], tea.Cmd) {
 			m.window.toTop()
 		case key.Matches(msg, keys.GotoBottom):
 			m.window.toBottom()
+		case key.Matches(msg, keys.Select):
+			m.window.data.toggleSelect(m.cursor.n)
+		case key.Matches(msg, keys.SelectAll):
+			m.window.data.selectAll()
+		case key.Matches(msg, keys.SelectClear):
+			m.window.data.clearSelection()
 		}
 	}
 	m.table.StyleFunc(func(row, col int) lipgloss.Style {
+		s := lipgloss.NewStyle()
 		if row == m.cursor.n {
-			return lipgloss.NewStyle().Background(lipgloss.Color("#ffffff"))
+			return s.Background(lipgloss.Color("#ffffff"))
 		}
-		return lipgloss.NewStyle()
+		if m.window.data.isSelected(row) {
+			return s.Background(lipgloss.Color("#DBBD70"))
+		}
+		return s
 	})
 	return m, nil
 }

@@ -8,6 +8,8 @@ type data[V comparable] struct {
 
 	filtered []V
 	filter   func(V) bool
+
+	selected map[V]bool
 }
 
 type Row[V comparable] struct {
@@ -53,14 +55,50 @@ func (b *data[V]) rows() []V {
 
 func (b *data[V]) applyFilter(fn func(V) bool) {
 	b.filter = fn
+
+	// Track selections that pass the filter
+	selected := make(map[V]bool)
+
 	for _, v := range b.unfiltered {
 		if fn(v) {
 			b.filtered = append(b.filtered, v)
+			selected[v] = b.selected[v]
 		}
 	}
+
+	b.selected = selected
 }
 
 func (b *data[V]) removeFilter() {
 	b.filter = nil
 	b.filtered = nil
+}
+
+func (b *data[V]) toggleSelect(row int) {
+	v := b.rows()[row]
+	if b.selected[v] {
+		delete(b.selected, v)
+	} else {
+		b.selected[v] = true
+	}
+}
+
+func (b *data[V]) selectAll() {
+	for _, row := range b.rows() {
+		b.selected[row] = true
+	}
+}
+
+func (b *data[V]) clearSelection() {
+	b.selected = make(map[V]bool)
+}
+
+func (b *data[V]) isSelected(row int) bool {
+	// The lipgloss stylefunc which calls this method can send negative row
+	// number (indicating the header row).
+	if row < 0 || row > len(b.rows()) {
+		return false
+	}
+	v := b.rows()[row]
+	return b.selected[v]
 }

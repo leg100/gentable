@@ -10,7 +10,7 @@ func main() {
 		Model: gentable.New[book](),
 	}
 	m.Headers("ISBN", "TITLE", "AUTHOR")
-	m.Wrap(false)
+	m.Wrap(true)
 	for _, bk := range books {
 		m.Append(gentable.Row[book]{
 			V: bk,

@@ -68,6 +68,10 @@ func (m *window[V]) CursorIndex() int {
 	return m.cursor.n
 }
 
+func (m *window[V]) CursorValue() V {
+	return m.cursor.v
+}
+
 func (m *window[V]) toTop() {
 	m.moveCursor(-m.cursor.n)
 }

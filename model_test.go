@@ -274,11 +274,11 @@ func TestModel_Shrink(t *testing.T) {
 
 }
 
-func booksModel(opts ...Option[book]) Model[book] {
+func booksModel(opts ...Option[book]) *Model[book] {
 	m := New[book]()
 	m.Border(lipgloss.RoundedBorder())
 	for _, fn := range opts {
-		fn(&m)
+		fn(m)
 	}
 	for _, bk := range books {
 		m.Append(Row[book]{

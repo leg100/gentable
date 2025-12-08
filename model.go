@@ -8,7 +8,7 @@ import (
 )
 
 func New[V comparable](opts ...Option[V]) Model[V] {
-	table := table.New().Overflow(false)
+	table := table.New().Wrap(false)
 	window := newWindow[V](table)
 	table.Data(window)
 
@@ -25,7 +25,8 @@ func New[V comparable](opts ...Option[V]) Model[V] {
 type Model[V comparable] struct {
 	*window[V]
 	// table is the wrapped lipgloss table responsible for actual rendering
-	table *table.Table
+	table   *table.Table
+	headers []string
 }
 
 func (m Model[V]) Init() tea.Cmd {
@@ -93,10 +94,16 @@ func (m *Model[V]) Width(width int) {
 // Headers sets the table headers.
 func (m *Model[V]) Headers(headers ...string) *Model[V] {
 	m.table.Headers(headers...)
+	m.headers = headers
 	// adding headers can alter the number of visible rows, so the window needs
 	// resetting.
 	m.window.reset()
 	return m
+}
+
+// Headers sets the table headers.
+func (m *Model[V]) GetHeaders() []string {
+	return m.headers
 }
 
 func (m *Model[V]) FirstVisibleRowIndex() int {

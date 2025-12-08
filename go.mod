@@ -13,13 +13,11 @@ require (
 
 require (
 	github.com/charmbracelet/colorprofile v0.3.1 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20250721205647-f6ac6eda5d42 // indirect
 	github.com/charmbracelet/x/ansi v0.10.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
 	github.com/charmbracelet/x/exp/golden v0.0.0-20250609102027-b60490452b30 // indirect
 	github.com/charmbracelet/x/input v0.3.7 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
-	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -34,4 +32,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/charmbracelet/lipgloss/v2 => github.com/leg100/lipgloss/v2 v2.0.0-alpha.2.0.20250817182048-7ae04c8775c7
+//replace github.com/charmbracelet/lipgloss/v2 => github.com/leg100/lipgloss/v2 v2.0.0-alpha.2.0.20250817182048-7ae04c8775c7
